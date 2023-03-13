@@ -1,0 +1,560 @@
+---
+title: "Untitled"
+output: html_document
+date: "2022-10-23"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+setwd("C:\\Users\\Margo\\OneDrive\\桌面\\ISE 535\\Group Project")
+
+library(tidyverse)
+# library(gridExtra)
+library(ggplot2)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+credit_card_cust = read_csv("Dataset 1 - Credit Card Customer Churn.csv")
+credit_card_cust
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+#  Define summarize_numeric function from homework 2 
+#
+summarize_numeric = function(dataset) {
+  
+  dataset = select_if(dataset, is.numeric)
+  summary.table = data.frame(Attribute = names(dataset))
+  
+  summary.table = summary.table %>% 
+    mutate('Missing Values' = apply(dataset, 2, function (x) sum(is.na(x))),
+           'Unique Values' = apply(dataset, 2, function (x) length(unique(x))),
+           'Mean' = colMeans(dataset, na.rm = TRUE),
+           'Min' = apply(dataset, 2, function (x) min(x, na.rm = TRUE)),
+           'Max' = apply(dataset, 2, function (x) max(x, na.rm = TRUE)),
+           'SD' = apply(dataset, 2, function (x) sd(x, na.rm = TRUE))
+    )
+  summary.table
+}
+```
+
+```{r}
+#  Define summarize_character function 
+#
+summarize_character = function(dataset) {
+  
+  dataset = select_if(dataset, is.character)
+  summary.table = data.frame(Attribute = names(dataset))
+  
+  summary.table = summary.table %>% 
+    mutate('Missing Values' = apply(dataset, 2, function (x) sum(is.na(x))),
+           'Unique Values' = apply(dataset, 2, function (x) length(unique(x))),
+    )
+  summary.table
+}
+```
+
+```{r}
+#  Define summarize_factor function 
+#
+summarize_factor = function(dataset) {
+  
+  dataset = select_if(dataset, is.factor)
+  summary.table = data.frame(Attribute = names(dataset))
+  
+  summary.table = summary.table %>% 
+    mutate('Missing Values' = apply(dataset, 2, function (x) sum(is.na(x))),
+           'Unique Values' = apply(dataset, 2, function (x) length(unique(x))),
+           'Mode' = apply(dataset, 2, function (x) mode(x)),
+    )
+  summary.table
+}
+```
+
+```{r}
+#  Initial dataset summary and conversion of attributes to appropriate types (numerics and classes)
+#
+credit_card_cust = read_csv("Dataset 1 - Credit Card Customer Churn.csv")
+summarize_numeric(credit_card_cust)
+summarize_character(credit_card_cust)
+```
+```{r}
+credit_card_cust$Attrition_Flag = as_factor(credit_card_cust$Attrition_Flag)
+credit_card_cust$Gender = as_factor(credit_card_cust$Gender)
+credit_card_cust$Education_Level = as_factor(credit_card_cust$Education_Level)
+credit_card_cust$Marital_Status = as_factor(credit_card_cust$Marital_Status)
+credit_card_cust$Income_Category = as_factor(credit_card_cust$Income_Category)
+credit_card_cust$Card_Category = as_factor(credit_card_cust$Card_Category)
+
+summarize_factor(credit_card_cust)
+
+
+credit_card_cust = credit_card_cust %>% select(-CLIENTNUM)
+summarize_numeric(credit_card_cust)
+```
+
+```{r}
+credit_card_cust %>% 
+  slice_max(Customer_Age, n=5) %>%
+  select(Attrition_Flag,Customer_Age,Gender,Education_Level,Income_Category,Card_Category,Total_Trans_Amt,Total_Trans_Ct)
+
+# hotel = hotel %>% filter(adr != max(adr))
+```
+```{r}
+credit_card_cust %>% 
+  slice_max(Contacts_Count_12_mon, n=50) %>%
+  select(Attrition_Flag,Contacts_Count_12_mon,Customer_Age,Gender,Education_Level,Income_Category,Card_Category,Total_Trans_Amt,Total_Trans_Ct)
+
+
+# boxplot
+ggplot(credit_card_cust) + geom_boxplot(aes(x=Contacts_Count_12_mon))
+
+print(credit_card_cust %>% group_by(Contacts_Count_12_mon) %>% count() %>% arrange(desc(n)), n = 25)
+```
+```{r}
+credit_card_cust %>% 
+  slice_max(Months_Inactive_12_mon, n=50) %>%
+  select(Attrition_Flag,Months_Inactive_12_mon,Customer_Age,Gender,Education_Level,Income_Category,Card_Category,Total_Trans_Amt,Total_Trans_Ct)
+
+
+# boxplot
+ggplot(credit_card_cust) + geom_boxplot(aes(x=Months_Inactive_12_mon))
+
+print(credit_card_cust %>% group_by(Months_Inactive_12_mon) %>% count() %>% arrange(desc(n)), n = 25)
+```
+```{r}
+credit_card_cust %>% 
+  slice_max(Total_Amt_Chng_Q4_Q1, n=50) %>%
+  select(Attrition_Flag,Total_Amt_Chng_Q4_Q1,Customer_Age,Gender,Education_Level,Income_Category,Card_Category,Total_Trans_Amt,Total_Trans_Ct)
+
+
+credit_card_cust %>% 
+  slice_min(Total_Amt_Chng_Q4_Q1, n=50) %>%
+  select(Attrition_Flag,Total_Amt_Chng_Q4_Q1,Customer_Age,Gender,Education_Level,Income_Category,Card_Category,Total_Trans_Amt,Total_Trans_Ct)
+
+
+credit_card_cust %>% 
+  slice_min(Total_Amt_Chng_Q4_Q1, n=50) %>%
+  select(Attrition_Flag,Total_Amt_Chng_Q4_Q1,Total_Ct_Chng_Q4_Q1,Customer_Age,Gender,Education_Level,Income_Category,Card_Category,Total_Trans_Amt,Total_Trans_Ct)
+```
+```{r}
+credit_card_cust %>% 
+  slice_max(Total_Ct_Chng_Q4_Q1, n=50) %>%
+  select(Attrition_Flag,Total_Ct_Chng_Q4_Q1,Customer_Age,Gender,Education_Level,Income_Category,Card_Category,Total_Trans_Amt,Total_Trans_Ct)
+
+
+credit_card_cust %>% 
+  slice_min(Total_Ct_Chng_Q4_Q1, n=50) %>%
+  select(Attrition_Flag,Total_Ct_Chng_Q4_Q1,Total_Amt_Chng_Q4_Q1,Customer_Age,Gender,Education_Level,Income_Category,Card_Category,Total_Trans_Amt,Total_Trans_Ct)
+```
+```{r}
+credit_card_cust %>% 
+  slice_max(Total_Trans_Amt, n=100) %>%
+  select(Attrition_Flag,Total_Trans_Amt,Customer_Age,Gender,Education_Level,Income_Category,Card_Category,Total_Trans_Amt,Total_Trans_Ct)
+```
+```{r}
+credit_card_cust %>% 
+  slice_max(Credit_Limit, n=100) %>%
+  select(Attrition_Flag,Credit_Limit,Customer_Age,Gender,Education_Level,Income_Category,Card_Category,Total_Trans_Amt,Total_Trans_Ct)
+
+
+print(credit_card_cust %>% filter(Attrition_Flag == "Attrited Customer" & Total_Revolving_Bal == 0) %>% 
+  select(Attrition_Flag,Credit_Limit,Customer_Age,Gender,Education_Level,Income_Category,Card_Category,Total_Trans_Amt,Total_Trans_Ct) %>% 
+  arrange(desc(Credit_Limit)), n=3)
+#& adr == 0 & is_canceled == "canceled"
+```
+```{r}
+credit_card_cust %>% 
+  slice_max(Avg_Open_To_Buy, n=100) %>%
+  select(Attrition_Flag,Avg_Open_To_Buy,Customer_Age,Gender,Education_Level,Income_Category,Card_Category,Total_Trans_Amt,Total_Trans_Ct)
+
+
+credit_card_cust %>% filter(Attrition_Flag == "Attrited Customer" & Total_Revolving_Bal == 0) %>% 
+  select(Attrition_Flag,Avg_Open_To_Buy,Credit_Limit,Customer_Age,Gender,Education_Level,Income_Category,Card_Category,Total_Trans_Amt,Total_Trans_Ct) %>% 
+  arrange(desc(Credit_Limit))
+```
+```{r}
+credit_card_cust %>% 
+  slice_min(Total_Revolving_Bal, n=100) %>%
+  select(Attrition_Flag,Total_Revolving_Bal,Avg_Open_To_Buy,Customer_Age,Gender,Education_Level,Income_Category,Card_Category,Total_Trans_Amt,Total_Trans_Ct)
+```
+```{r}
+credit_card_cust %>% 
+  slice_max(Total_Trans_Ct, n=100) %>%
+  select(Attrition_Flag,Total_Trans_Amt,Customer_Age,Gender,Education_Level,Income_Category,Card_Category,Total_Trans_Amt,Total_Trans_Ct)
+```
+```{r}
+###################################
+## delete outliers
+credit_card_cust %>% 
+  slice_max(Total_Amt_Chng_Q4_Q1, n=50) %>%
+  select(Attrition_Flag,Total_Ct_Chng_Q4_Q1,Total_Amt_Chng_Q4_Q1,Credit_Limit,Avg_Open_To_Buy,Card_Category,Total_Trans_Amt,Total_Trans_Ct,Avg_Utilization_Ratio)
+
+credit_card_cust %>% 
+  slice_min(Total_Amt_Chng_Q4_Q1, n=50) %>%
+  select(Attrition_Flag,Total_Amt_Chng_Q4_Q1,Customer_Age,Gender,Education_Level,Income_Category,Card_Category,Total_Trans_Amt,Total_Trans_Ct)
+
+
+credit_card_cust %>% 
+  slice_max(Total_Ct_Chng_Q4_Q1, n=50) %>%
+  select(Attrition_Flag,Total_Ct_Chng_Q4_Q1,Total_Amt_Chng_Q4_Q1,Credit_Limit,Avg_Open_To_Buy,Card_Category,Total_Trans_Amt,Total_Trans_Ct,Avg_Utilization_Ratio)
+
+credit_card_cust %>% 
+  slice_min(Total_Ct_Chng_Q4_Q1, n=50) %>%
+  select(Attrition_Flag,Total_Ct_Chng_Q4_Q1,Customer_Age,Gender,Education_Level,Income_Category,Card_Category,Total_Trans_Amt,Total_Trans_Ct)
+
+
+credit_card_cust %>% 
+  slice_min(Total_Ct_Chng_Q4_Q1, n=50) %>%
+  select(Attrition_Flag,Total_Ct_Chng_Q4_Q1,Total_Amt_Chng_Q4_Q1,Credit_Limit,Avg_Open_To_Buy,Card_Category,Total_Trans_Amt,Total_Trans_Ct,Avg_Utilization_Ratio)
+
+credit_card_cust %>% group_by(Total_Ct_Chng_Q4_Q1) %>% summarize(n()) %>% arrange(desc(Total_Ct_Chng_Q4_Q1))
+
+```
+```{r}
+rows_to_remove = credit_card_cust %>% filter(Total_Ct_Chng_Q4_Q1 == 0 & Attrition_Flag == 'Attrited Customer') %>% 
+  select(Attrition_Flag,Total_Ct_Chng_Q4_Q1,Total_Amt_Chng_Q4_Q1,Credit_Limit,Avg_Open_To_Buy,Card_Category,Total_Trans_Amt,Total_Trans_Ct,Avg_Utilization_Ratio)
+
+credit_card_cust = credit_card_cust %>% anti_join(rows_to_remove, by = c('Total_Ct_Chng_Q4_Q1', 'Attrition_Flag'))
+credit_card_cust
+```
+```{r}
+library(ggplot2)
+library(gridExtra)
+
+g1 = ggplot(credit_card_cust, aes(y = Total_Amt_Chng_Q4_Q1)) + geom_histogram()
+g2 = ggplot(credit_card_cust, aes(y = Total_Amt_Chng_Q4_Q1)) + geom_boxplot()
+g3 = ggplot(credit_card_cust, aes(y = Total_Ct_Chng_Q4_Q1)) + geom_histogram()
+g4 = ggplot(credit_card_cust, aes(y = Total_Ct_Chng_Q4_Q1)) + geom_boxplot()
+
+grid.arrange(g1, g2, g3, g4, nrow=1, top = "Initial Univariate Analysis")
+```
+
+```{r}
+credit_card_cust %>% filter(Income_Category == 'Unknown') %>% 
+  select(Attrition_Flag,Gender,Income_Category,Total_Ct_Chng_Q4_Q1,Total_Amt_Chng_Q4_Q1,Credit_Limit,Avg_Open_To_Buy,Card_Category,Total_Trans_Amt,Total_Trans_Ct,Avg_Utilization_Ratio)
+```
+
+```{r}
+
+g1 = ggplot(credit_card_cust, aes(y = Months_on_book)) + geom_histogram()
+g2 = ggplot(credit_card_cust, aes(y = Months_on_book)) + geom_boxplot()
+g3 = ggplot(credit_card_cust, aes(y = Avg_Utilization_Ratio)) + geom_histogram()
+g4 = ggplot(credit_card_cust, aes(y = Avg_Utilization_Ratio)) + geom_boxplot()
+
+grid.arrange(g1, g2, g3, g4, nrow=1, top = "Initial Univariate Analysis")
+```
+
+```{r}
+library(dplyr)
+credit_numerics <- select_if(credit_card_cust, is.numeric)
+sat_long <- credit_numerics %>% pivot_longer(Customer_Age:Avg_Utilization_Ratio, names_to="Variable", values_to="Value")
+ggplot(sat_long, aes(x=Value)) + geom_histogram() + facet_wrap(~ Variable)
+
+library(ggcorrplot)
+fullCorrMatrix = round(cor(credit_numerics), 2)
+ggcorrplot(fullCorrMatrix, lab=TRUE, lab_size = 2.2, hc.order = TRUE, tl.cex=7)
+```
+
+
+```{r}
+#############
+## Logistic Regression
+library(MASS)
+library(ISLR2)
+
+credit_card_cust = credit_card_cust %>% mutate(Existing_Cust = if_else(Attrition_Flag == "Existing Customer", 1, 0))
+logistic_model1 = glm(Existing_Cust ~ Gender, data = credit_card_cust, family = "binomial")
+summary(logistic_model1)
+```
+
+```{r}
+confint(logistic_model1)
+```
+
+```{r}
+# calculate McFadden's R-squared for model
+with(summary(logistic_model1), 1 - deviance/null.deviance)
+summary(logistic_model1)$r.squared
+summary(logistic_model1)$adj.r.squared
+pscl::pR2(logistic_model1)["McFadden"]
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(logistic_model1)
+```
+
+```{r}
+logistic_model2 = glm(Existing_Cust ~ Gender + Income_Category, data = credit_card_cust, family = "binomial")
+summary(logistic_model2)
+pscl::pR2(logistic_model2)["McFadden"]
+```
+
+```{r}
+logistic_model3 = glm(Existing_Cust ~ Gender + Income_Category + Total_Trans_Amt + Total_Trans_Ct + Total_Trans_Amt:Total_Trans_Ct, data = credit_card_cust, family = "binomial")
+summary(logistic_model3)
+pscl::pR2(logistic_model3)["McFadden"]
+```
+
+```{r}
+logistic_model4 = glm(Existing_Cust ~ Gender + Income_Category + Total_Trans_Amt + Total_Trans_Ct + Total_Revolving_Bal +Total_Relationship_Count + Total_Trans_Amt:Total_Trans_Ct, data = credit_card_cust, family = "binomial")
+summary(logistic_model4)
+pscl::pR2(logistic_model4)["McFadden"]
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(logistic_model4)
+```
+
+```{r}
+credit_card_cust[c(9727, 9789, 9790),]
+```
+
+```{r}
+# library(caret)
+# caret::varImp(logistic_model4)
+
+library(car)
+car::vif(logistic_model4)
+```
+
+```{r}
+logistic_model5 = glm(Existing_Cust ~ Gender + Total_Trans_Amt + Total_Trans_Ct + Total_Revolving_Bal +Total_Relationship_Count + Total_Trans_Amt:Total_Trans_Ct, data = credit_card_cust, family = "binomial")
+summary(logistic_model5)
+pscl::pR2(logistic_model5)["McFadden"]
+
+par(mfrow=c(2,2))
+plot(logistic_model5)
+```
+
+```{r}
+###############################################
+## Scale Data
+credit_card_cust = credit_card_cust %>% mutate(Existing_Cust = if_else(Attrition_Flag == "Existing Customer", 1, 0))
+credit = credit_card_cust
+credit
+
+credit[ , c(2,4,9,10:20)] = scale(credit[, c(2,4,9,10:20)])
+head(credit)
+summary(credit)
+```
+
+```{r}
+logistic_model6 = glm(Existing_Cust ~ Total_Trans_Amt + Total_Trans_Ct + Total_Revolving_Bal + Total_Relationship_Count + Total_Ct_Chng_Q4_Q1 + Total_Amt_Chng_Q4_Q1 +  Total_Trans_Amt:Total_Trans_Ct, data = credit, family = "binomial")
+summary(logistic_model6)
+pscl::pR2(logistic_model6)["McFadden"]
+
+par(mfrow=c(2,2))
+plot(logistic_model6)
+
+# Avg_Utilization_Ratio + 
+```
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+#############################################
+## Decision Tree
+library(rpart)
+library(rpart.plot)
+
+credit_card_cust[ , c(2,4,9,10:20)] = scale(credit_card_cust[, c(2,4,9,10:20)])
+head(credit)
+# summary(credit)
+
+full_tree = rpart(Attrition_Flag ~ Total_Trans_Amt + Total_Trans_Ct + Total_Revolving_Bal + Total_Relationship_Count + Total_Ct_Chng_Q4_Q1 + Total_Amt_Chng_Q4_Q1, data = credit_card_cust, method = "class")
+rpart.plot(full_tree, tweak = 1.3, type = 5)
+```
+
+```{r}
+full_tree$variable.importance
+```
+
+```{r}
+credit_card_cust = read_csv("Dataset 1 - Credit Card Customer Churn.csv")
+credit_card_cust = credit_card_cust %>% select(-CLIENTNUM)
+rows_to_remove = credit_card_cust %>% filter(Total_Ct_Chng_Q4_Q1 == 0 & Attrition_Flag == 'Attrited Customer') %>% 
+  select(Attrition_Flag,Total_Ct_Chng_Q4_Q1,Total_Amt_Chng_Q4_Q1,Credit_Limit,Avg_Open_To_Buy,Card_Category,Total_Trans_Amt,Total_Trans_Ct,Avg_Utilization_Ratio)
+
+credit_card_cust = credit_card_cust %>% anti_join(rows_to_remove, by = c('Total_Ct_Chng_Q4_Q1', 'Attrition_Flag'))
+
+
+
+full_tree = rpart(Attrition_Flag ~ ., data = credit_card_cust, method = "class")
+rpart.plot(full_tree, tweak = 1, type = 5)
+
+full_tree$variable.importance
+```
+
+```{r}
+df = data.frame(var = c("Total_Trans_Ct","Total_Trans_Amt","Total_Revolving_Bal","Avg_Utilization_Ratio","Total_Ct_Chng_Q4_Q1","Total_Relationship_Count","Total_Amt_Chng_Q4_Q1","Credit_Limit","Customer_Age","Avg_Open_To_Buy","Months_on_book","Contacts_Count_12_mon","Dependent_count","Card_Category","Marital_Status"), importance = full_tree$variable.importance)
+df = as_tibble(df)
+ggplot(df, aes(x = importance, y = reorder(var,importance))) + geom_bar(stat="identity")
+```
+
+```{r}
+ggplot(credit_card_cust, aes(Total_Relationship_Count)) + geom_bar(aes(fill = Attrition_Flag), position="fill")
+
+ggplot(credit_card_cust, aes(Contacts_Count_12_mon)) + geom_bar(aes(fill = Attrition_Flag), position="fill")
+```
+
+```{r}
+##################################################### 11.17
+# Delete Age Outliers
+credit_card_cust %>% 
+  slice_max(Customer_Age, n=100) %>%
+  select(Attrition_Flag,Credit_Limit,Customer_Age,Gender,Education_Level,Income_Category,Card_Category,Total_Trans_Amt,Total_Trans_Ct)
+
+
+
+rows_to_remove = credit_card_cust %>% filter(Customer_Age == 73) %>% 
+  select(Attrition_Flag,Customer_Age,Total_Ct_Chng_Q4_Q1,Total_Amt_Chng_Q4_Q1,Credit_Limit,Avg_Open_To_Buy,Card_Category,Total_Trans_Amt,Total_Trans_Ct,Avg_Utilization_Ratio)
+credit_card_cust = credit_card_cust %>% anti_join(rows_to_remove, by = c('Customer_Age'))
+
+rows_to_remove = credit_card_cust %>% filter(Customer_Age == 70) %>% 
+  select(Attrition_Flag,Customer_Age,Total_Ct_Chng_Q4_Q1,Total_Amt_Chng_Q4_Q1,Credit_Limit,Avg_Open_To_Buy,Card_Category,Total_Trans_Amt,Total_Trans_Ct,Avg_Utilization_Ratio)
+credit_card_cust = credit_card_cust %>% anti_join(rows_to_remove, by = c('Customer_Age'))
+
+credit_card_cust
+
+```
+
+```{r}
+# g1 = ggplot(hotel_c) + geom_boxplot(aes(x=hotel, y=previous_cancellations))
+
+g1 = ggplot(credit_card_cust, aes(x = Attrition_Flag, y = Customer_Age)) + geom_boxplot()
+g2 = ggplot(credit_card_cust, aes(x = Attrition_Flag, y = Months_on_book)) + geom_boxplot()
+g3 = ggplot(credit_card_cust, aes(x = Attrition_Flag, y = Total_Relationship_Count)) + geom_boxplot()
+g4 = ggplot(credit_card_cust, aes(x = Attrition_Flag, y = Months_Inactive_12_mon)) + geom_boxplot()
+g5 = ggplot(credit_card_cust, aes(x = Attrition_Flag, y = Contacts_Count_12_mon)) + geom_boxplot()
+g6 = ggplot(credit_card_cust, aes(x = Attrition_Flag, y = Credit_Limit)) + geom_boxplot()
+g7 = ggplot(credit_card_cust, aes(x = Attrition_Flag, y = Total_Revolving_Bal)) + geom_boxplot()
+g8 = ggplot(credit_card_cust, aes(x = Attrition_Flag, y = Avg_Open_To_Buy)) + geom_boxplot()
+g9 = ggplot(credit_card_cust, aes(x = Attrition_Flag, y = Total_Amt_Chng_Q4_Q1)) + geom_boxplot()
+g10 = ggplot(credit_card_cust, aes(x = Attrition_Flag, y = Total_Ct_Chng_Q4_Q1)) + geom_boxplot()
+g11 = ggplot(credit_card_cust, aes(x = Attrition_Flag, y = Total_Trans_Amt)) + geom_boxplot()
+g12 = ggplot(credit_card_cust, aes(x = Attrition_Flag, y = Total_Trans_Ct)) + geom_boxplot()
+g13 = ggplot(credit_card_cust, aes(x = Attrition_Flag, y = Avg_Utilization_Ratio)) + geom_boxplot()
+g14 = ggplot(credit_card_cust, aes(x = Attrition_Flag, y = Dependent_count)) + geom_boxplot()
+
+grid.arrange(g1, g2, g3, g4,g5,g6,g7,g8,g9,g10,g11,g12,g13,g14, nrow=3, top = "Bivariate Analysis")
+```
+
+```{r}
+g1 = ggplot(credit_card_cust) + geom_bar(aes(x=Gender, fill = Attrition_Flag), position = "fill") + labs(y = "Percent")
+g2 = ggplot(credit_card_cust) + geom_bar(aes(x=Education_Level, fill = Attrition_Flag), position = "fill") + labs(y = "Percent") #+  theme(axis.text.x=element_text(angle=45, hjust=1))
+g3 = ggplot(credit_card_cust) + geom_bar(aes(x=Marital_Status, fill = Attrition_Flag), position = "fill") + labs(y = "Percent")
+g4 = ggplot(credit_card_cust) + geom_bar(aes(x=Card_Category, fill = Attrition_Flag), position = "fill") + labs(y = "Percent")
+g5 = ggplot(credit_card_cust) + geom_bar(aes(x=Income_Category, fill = Attrition_Flag), position = "fill") + labs(y = "Percent") #+  theme(axis.text.x=element_text(angle=45, hjust=1))
+
+grid.arrange(g1,g2, g3, g4, g5, nrow=5, top = "Attrition_Flag")
+```
+
+```{r}
+credit_card_cust %>% filter(Income_Category == 'Unknown') %>% 
+  select(Attrition_Flag,Gender,Income_Category,Total_Ct_Chng_Q4_Q1,Total_Amt_Chng_Q4_Q1,Credit_Limit,Avg_Open_To_Buy,Card_Category,Total_Trans_Amt,Total_Trans_Ct,Avg_Utilization_Ratio)
+```
+
+```{r}
+credit_card_cust %>% filter(Income_Category == 'Unknown') %>% group_by(Attrition_Flag) %>% summarise(n())
+```
+
+```{r}
+credit_card = credit_card_cust %>% mutate(Per_Trans = Total_Trans_Amt / Total_Trans_Ct)
+credit_card %>% select(Attrition_Flag, Total_Trans_Amt, Total_Trans_Ct, Per_Trans)
+```
+
+```{r}
+ggplot(credit_card) + geom_point(aes(x=Total_Trans_Ct, y=Total_Trans_Amt, colour=Attrition_Flag, size=Per_Trans))
+```
+
+```{r}
+credit_card %>% filter(Total_Trans_Amt > 12000) %>% summarise(mean(Per_Trans))
+
+credit_card %>% filter(Total_Trans_Amt < 12000 & Total_Trans_Amt > 6500 & Attrition_Flag == "Existing Customer") %>% summarise(mean(Per_Trans))
+credit_card %>% filter(Total_Trans_Amt < 12000 & Total_Trans_Amt > 6500 & Attrition_Flag == "Attrited Customer") %>% summarise(mean(Per_Trans))
+
+credit_card %>% filter(Total_Trans_Amt < 6500 & Attrition_Flag == "Existing Customer") %>% summarise(mean(Per_Trans))
+credit_card %>% filter(Total_Trans_Amt < 6500 & Attrition_Flag == "Attrited Customer") %>% summarise(mean(Per_Trans))
+```
+
+
+```{r}
+# ggplot(credit_card) + geom_histogram(aes(x=Total_Trans_Ct, y=Total_Trans_Amt))
+ggplot(credit_card %>% filter(Attrition_Flag == "Existing Customer"), aes(x = Per_Trans)) + geom_histogram()
+ggplot(credit_card %>% filter(Attrition_Flag == "Attrited Customer"), aes(x = Per_Trans)) + geom_histogram()
+```
+
+```{r}
+x1 = credit_card %>% filter(Attrition_Flag == "Existing Customer") %>% select(Per_Trans)
+x2 = credit_card %>% filter(Attrition_Flag == "Attrited Customer") %>% select(Per_Trans)
+
+hist(x1, col='red', xlim=c(0, 1.5), main='Multiple Histogram', xlab='x')
+hist(x2, col='blue', add=TRUE)
+
+legend('topright', c('x1', 'x2'), fill=c('red', 'blue'))
+```
+
+```{r}
+ggplot(credit_card, aes(x=Per_Trans, fill=Attrition_Flag)) +
+  geom_histogram(color='#e9ecef', alpha=0.6, position='identity')
+```
+
+
+
+
+
+
+
+
+
+
+
+
